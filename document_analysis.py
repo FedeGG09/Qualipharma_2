@@ -84,7 +84,7 @@ def vectorizar_y_tokenizar_diferencias(diferencias, tokens_referencia, nombre_do
     df_diferencias.to_csv(ruta_archivo_csv, index=False, encoding='utf-8')
     return diferencias_vectorizadas
 
-def almacenar_reglas_vectorizadas(texto_manual, tokens_referencia):
+def almacenar_reglas_vectorizadas(tokens_referencia):
     reglas_vectorizadas = {}
     reglas = texto_manual.split("\n")
     for regla in reglas:

@@ -48,7 +48,7 @@ def extraer_texto(file_type, file):
     return ""
 
 # Función para cargar y vectorizar el manual
-def load_manual(tokens_referencia, texto_manual):
+def load_manual(tokens_referencia, texto_manual, indice_manual):
     almacenar_reglas_vectorizadas(tokens_referencia, texto_manual)
     st.success("Manual cargado y vectorizado con éxito.")
 

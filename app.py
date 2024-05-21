@@ -130,9 +130,8 @@ if st.sidebar.button("Procesar Documentos") and uploaded_reference_file and uplo
     procesar_documentos(uploaded_reference_file, uploaded_compare_file, reference_file_type, compare_file_type)
 
 if st.sidebar.button("Cargar y Vectorizar Manual") and uploaded_reference_file:
-    texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)
-    tokens_referencia = tokenizar_lineamientos([texto_referencia])
-    load_manual(tokens_referencia, texto_referencia)
+    # Llamar a la función para cargar y vectorizar el manual
+    ruta_manual_vectorizado = cargar_y_vectorizar_manual(uploaded_reference_file, reference_file_type, indice_manual)
 
 if st.sidebar.button("Verificar Cumplimiento de Archivo") and uploaded_reference_file and uploaded_compare_file:
     texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)

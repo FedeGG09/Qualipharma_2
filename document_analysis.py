@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 import pdfminer.high_level
-import spacy
 import json
 import csv
 import docx
@@ -10,8 +9,8 @@ from docx import Document
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 import logging
-
 import nltk
+
 nltk.download('punkt')
 nltk.download('wordnet')
 
@@ -64,6 +63,7 @@ def encontrar_diferencias(documento1, documento2):
     except Exception as e:
         logging.error(f"Error al encontrar diferencias: {e}")
         return None
+
 def vectorizar_y_tokenizar_diferencias(diferencias, tokens_referencia, nombre_documento_comparar, nombre_documento_referencia):
     diferencias_vectorizadas = []
     for diferencia in diferencias:
@@ -84,80 +84,6 @@ def vectorizar_y_tokenizar_diferencias(diferencias, tokens_referencia, nombre_do
     df_diferencias.to_csv(ruta_archivo_csv, index=False, encoding='utf-8')
     return diferencias_vectorizadas
 
-def almacenar_reglas_vectorizadas(texto_manual, tokens_referencia):
-    reglas_vectorizadas = {}
-    reglas = texto_manual.split("\n")
-    for regla in reglas:
-        regla = regla.strip()
-        if regla:
-            vector_tfidf = vectorizar_texto(regla, tokens_referencia)
-            reglas_vectorizadas[regla] = vector_tfidf.tolist()[0]
-    ruta_archivo_csv = "data/output/reglas_vectorizadas.csv"
-    with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["Regla", "Vector"])
-        for regla, vector in reglas_vectorizadas.items():
-            writer.writerow([regla, json.dumps(vector)])
-    return reglas_vectorizadas
-    
-    # Guardar el manual vectorizado en un archivo CSV
-    ruta_archivo_csv = "data/output/manual_vectorizado.csv"
-    with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["Seccion", "Vector"])
-        for seccion, vector in reglas_vectorizadas.items():
-            writer.writerow([seccion, json.dumps(vector)])
-    
-    # Retornar la ruta del archivo CSV del manual vectorizado
-    return ruta_archivo_csv
-
-def load_manual(tokens_referencia, texto_manual, indice_manual):
-    almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual)
-
-indice_manual = [
-    "2.1. Minor variations of Type IA",
-    "2.1.1. Submission of Type IA notifications",
-    "2.1.2. Type IA variations review for mutual recognition procedure",
-    "2.1.3. Type IA variations review for purely national procedure",
-    "2.1.4. Type IA variations review for centralised procedure",
-    "2.2. Minor variations of Type IB",
-    "2.2.1. Submission of Type IB notifications",
-    "2.2.2. Type IB variations review for mutual recognition procedure",
-    "2.2.3. Type IB variations review for purely national procedure",
-    "2.2.4. Type IB variations review for centralised procedure",
-    "2.3. Major variations of Type II",
-    "2.3.1. Submission of Type II applications",
-    "2.3.2. Type II variations assessment for mutual recognition procedure",
-    "2.3.3. Outcome of Type II variations assessment for mutual recognition procedure",
-    "2.3.4. Type II variations assessment for purely national procedure",
-    "2.3.5. Outcome of Type II variations assessment for purely national procedure",
-    "2.3.6. Type II variations assessment for centralised procedure",
-    "2.3.7. Outcome of Type II variations assessment in centralised procedure",
-    "2.4. Extensions",
-    "2.4.1. Submission of Extensions applications",
-    "2.4.2. Extension assessment for national procedure",
-    "2.4.3. Extension assessment for centralised procedure"
-]
-
-def cargar_y_vectorizar_manual(file, file_type, tokens_referencia, indice_manual):
-    if file_type == "pdf":
-        texto_manual = extraer_texto_pdf(file)
-    elif file_type == "txt":
-        texto_manual = leer_archivo_texto(file)
-    elif file_type == "docx":
-        texto_manual = extraer_texto_docx(file)
-    else:
-        return None
-
-    reglas_vectorizadas = almacenar_reglas_vectorizadas(texto_manual, tokens_referencia, indice_manual)
-    ruta_archivo_csv = "data/output/manual_vectorizado.csv"
-    with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["Regla", "Vector"])
-        for regla, vector in reglas_vectorizadas.items():
-            writer.writerow([regla, json.dumps(vector)])
-    return ruta_archivo_csv
-
 def almacenar_reglas_vectorizadas(texto_manual, tokens_referencia, indice_manual):
     reglas_vectorizadas = {}
     secciones = texto_manual.split("\n\n")  # Supongamos que las secciones están separadas por dos saltos de línea
@@ -177,5 +103,21 @@ def extraer_titulo_seccion(seccion, indice_manual):
             return item
     return "Seccion Desconocida"
 
-# Luego de definir estas funciones, puedes llamar a cargar_y_vectorizar_manual pasando el índice manual como un argumento adicional
-ruta_manual_vectorizado = cargar_y_vectorizar_manual(uploaded_reference_file, reference_file_type, tokens_referencia, indice_manual)
+def cargar_y_vectorizar_manual(file, file_type, tokens_referencia, indice_manual):
+    if file_type == "pdf":
+        texto_manual = extraer_texto_pdf(file)
+    elif file_type == "txt":
+        texto_manual = leer_archivo_texto(file)
+    elif file_type == "docx":
+        texto_manual = extraer_texto_docx(file)
+    else:
+        return None
+
+    reglas_vectorizadas = almacenar_reglas_vectorizadas(texto_manual, tokens_referencia, indice_manual)
+    ruta_archivo_csv = "data/output/manual_vectorizado.csv"
+    with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Regla", "Vector"])
+        for regla, vector in reglas_vectorizadas.items():
+            writer.writerow([regla, json.dumps(vector)])
+    return ruta_archivo_csv

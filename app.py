@@ -58,15 +58,11 @@ def verify_file_compliance(tokens_referencia, texto_comparar):
     if diferencias:
         st.warning("El documento no cumple con las normativas establecidas en el manual de referencia.")
         st.header("Diferencias Encontradas")
-        diferencias_tabla = [
-            [diferencia.get('seccion', 'N/A'), 
-             diferencia.get('contenido_referencia', 'N/A'), 
-             diferencia.get('contenido_documento', 'N/A'), 
-             diferencia.get('tipo', 'N/A'),
-             diferencia.get('recomendacion', 'N/A')]
-            for diferencia in diferencias
-        ]
-        st.table(diferencias_tabla)
+        for diferencia in diferencias:
+            st.markdown(f"### {diferencia['seccion']}")
+            st.markdown(f"**Contenido de referencia:** {diferencia['contenido_referencia']}")
+            st.markdown(f"**Contenido del documento:** {diferencia['contenido_documento']}")
+            st.markdown(f"**Recomendación:** {diferencia['recomendacion']}")
     else:
         st.success("El documento cumple con las normativas establecidas en el manual de referencia.")
 
@@ -76,7 +72,12 @@ def compare_with_manual(diferencias_vectorizadas, tokens_referencia):
     if resultado_comparacion:
         st.warning("Las diferencias encontradas no cumplen con el manual vectorizado.")
         st.header("Diferencias con el Manual")
-        st.table(resultado_comparacion)
+        for resultado in resultado_comparacion:
+            st.markdown(f"### {resultado['seccion']}")
+            st.markdown(f"**Contenido de referencia:** {resultado['contenido_referencia']}")
+            st.markdown(f"**Contenido del documento:** {resultado['contenido_documento']}")
+            st.markdown(f"**Recomendación:** {resultado['recomendacion']}")
+            st.markdown(f"**Similitud:** {resultado['similitud']:.2f}")
     else:
         st.success("Las diferencias cumplen con el manual vectorizado.")
 
@@ -84,7 +85,7 @@ def compare_with_manual(diferencias_vectorizadas, tokens_referencia):
 st.set_page_config(page_title="Qualipharma - Analytics Town", page_icon="🧪")
 st.title("Qualipharma - Analytics Town")
 
-#st.sidebar.image("path/to/your/logo.png", use_column_width=True)  # Añadir logo
+st.sidebar.image("path/to/your/logo.png", use_column_width=True)  # Añadir logo
 st.sidebar.header("Cargar Manual de Referencia")
 uploaded_reference_file = st.sidebar.file_uploader("Subir archivo de referencia", type=["pdf", "txt", "docx"])
 if uploaded_reference_file:

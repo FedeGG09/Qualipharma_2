@@ -115,7 +115,7 @@ def cargar_y_vectorizar_manual(file, file_type, tokens_referencia):
 
 def comparar_con_manual(diferencias_vectorizadas, tokens_referencia):
     try:
-        manual_vectorizado = pd.read_csv("data/output/reglas_vectorizadas.csv")
+        manual_vectorizado = pd.read_csv("https://raw.githubusercontent.com/FedeGG09/Qualipharma_2/main/data/ouput/reglas_vectorizadas.csv")
     except FileNotFoundError:
         logging.error("El archivo 'reglas_vectorizadas.csv' no se encontró.")
         return None
@@ -125,8 +125,8 @@ def comparar_con_manual(diferencias_vectorizadas, tokens_referencia):
         vector_diferencia = diferencia["vector"]
         for _, fila in manual_vectorizado.iterrows():
             regla_vector = json.loads(fila["Vector"])
-            similitud = sum(a * b for a, b in zip(vector_diferencia, regla_vector))  # Similarity calculation
-            if similitud < 0.8:  # Threshold for compliance
+            similitud = sum(a * b for a, b in zip(vector_diferencia, regla_vector))  # Cálculo de similitud
+            if similitud < 0.8:  # Umbral de cumplimiento
                 resultado = {
                     "seccion": diferencia.get("seccion"),
                     "contenido_referencia": diferencia.get("contenido_referencia"),

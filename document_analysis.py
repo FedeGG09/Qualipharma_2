@@ -19,31 +19,6 @@ logging.basicConfig(filename='logs/document_analysis.log', level=logging.DEBUG)
 
 lemmatizer = WordNetLemmatizer()
 
-indice_manual = [
-    "2.1. Minor variations of Type IA",
-    "2.1.1. Submission of Type IA notifications",
-    "2.1.2. Type IA variations review for mutual recognition procedure",
-    "2.1.3. Type IA variations review for purely national procedure",
-    "2.1.4. Type IA variations review for centralised procedure",
-    "2.2. Minor variations of Type IB",
-    "2.2.1. Submission of Type IB notifications",
-    "2.2.2. Type IB variations review for mutual recognition procedure",
-    "2.2.3. Type IB variations review for purely national procedure",
-    "2.2.4. Type IB variations review for centralised procedure",
-    "2.3. Major variations of Type II",
-    "2.3.1. Submission of Type II applications",
-    "2.3.2. Type II variations assessment for mutual recognition procedure",
-    "2.3.3. Outcome of Type II variations assessment for mutual recognition procedure",
-    "2.3.4. Type II variations assessment for purely national procedure",
-    "2.3.5. Outcome of Type II variations assessment for purely national procedure",
-    "2.3.6. Type II variations assessment for centralised procedure",
-    "2.3.7. Outcome of Type II variations assessment in centralised procedure",
-    "2.4. Extensions",
-    "2.4.1. Submission of Extensions applications",
-    "2.4.2. Extension assessment for national procedure",
-    "2.4.3. Extension assessment for centralised procedure"
-]
-
 def extraer_texto_docx(docx_file):
     texto = ""
     doc = Document(docx_file)
@@ -111,25 +86,11 @@ def vectorizar_y_tokenizar_diferencias(diferencias, tokens_referencia, nombre_do
     df_diferencias.to_csv(ruta_archivo_csv, index=False, encoding='utf-8')
     return diferencias_vectorizadas
 
-def almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual):
-    reglas_vectorizadas = {}
-    secciones = texto_manual.split("\n\n")  # Supongamos que las secciones están separadas por dos saltos de línea
-
-    for seccion in secciones:
-        seccion = seccion.strip()
-        if seccion:
-            titulo_seccion = extraer_titulo_seccion(seccion, indice_manual)
-            vector_tfidf = vectorizar_texto(seccion, tokens_referencia)
-            reglas_vectorizadas[titulo_seccion] = vector_tfidf.tolist()[0]
-
-    ruta_archivo_csv = "https://raw.githubusercontent.com/FedeGG09/Qualipharma_2/main/data/ouput/reglas_vectorizadas.csv"
-    with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["Seccion", "Vector"])
-        for seccion, vector in reglas_vectorizadas.items():
-            writer.writerow([seccion, json.dumps(vector)])
-
-    return reglas_vectorizadas
+def extraer_titulo_seccion(seccion, indice_manual):
+    for item in indice_manual:
+        if item in seccion:
+            return item
+    return "Seccion Desconocida"
 
 def cargar_y_vectorizar_manual(file, file_type, indice_manual):
     # Cargar el texto del manual desde el archivo
@@ -155,46 +116,37 @@ def cargar_y_vectorizar_manual(file, file_type, indice_manual):
 def load_manual(tokens_referencia, texto_manual, indice_manual):
     almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual)
 
-def extraer_titulo_seccion(seccion, indice_manual):
-    for item in indice_manual:
-        if item in seccion:
-            return item
-    return "Seccion Desconocida"
+indice_manual = [
+    "2.1. Minor variations of Type IA",
+    "2.1.1. Submission of Type IA notifications",
+    "2.1.2. Type IA variations review for mutual recognition procedure",
+    "2.1.3. Type IA variations review for purely national procedure",
+    "2.1.4. Type IA variations review for centralised procedure",
+    "2.2. Minor variations of Type IB",
+    "2.2.1. Submission of Type IB notifications",
+    "2.2.2. Type IB variations review for mutual recognition procedure",
+    "2.2.3. Type IB variations review for purely national procedure",
+    "2.2.4. Type IB variations review for centralised procedure",
+    "2.3. Major variations of Type II",
+    "2.3.1. Submission of Type II applications",
+    "2.3.2. Type II variations assessment for mutual recognition procedure",
+    "2.3.3. Outcome of Type II variations assessment for mutual recognition procedure",
+    "2.3.4. Type II variations assessment for purely national procedure",
+    "2.3.5. Outcome of Type II variations assessment for purely national procedure",
+    "2.3.6. Type II variations assessment for centralised procedure",
+    "2.3.7. Outcome of Type II variations assessment in centralised procedure",
+    "2.4. Extensions",
+    "2.4.1. Submission of Extensions applications",
+    "2.4.2. Extension assessment for national procedure",
+    "2.4.3. Extension assessment for centralised procedure"
+]
 
-def cargar_y_vectorizar_manual(file, file_type, tokens_referencia, indice_manual):
-    texto_manual = extraer_texto(file_type, file)
-    reglas_vectorizadas = almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual)
-    ruta_archivo_csv = "data/output/manual_vectorizado.csv"
-    with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["Seccion", "Vector"])
-        for seccion, vector in reglas_vectorizadas.items():
-            writer.writerow([seccion, json.dumps(vector)])
-    return ruta_archivo_csv
+# Aquí deberías cargar y vectorizar el manual
+ruta_manual_vectorizado = cargar_y_vectorizar_manual(uploaded_reference_file, reference_file_type, indice_manual)
 
-def comparar_con_manual(diferencias_vectorizadas, tokens_referencia):
-    try:
-        manual_vectorizado = pd.read_csv("data/output/reglas_vectorizadas.csv")
-    except FileNotFoundError:
-        logging.error("El archivo 'reglas_vectorizadas.csv' no se encontró.")
-        return None
+# Luego, carga los tokens de referencia y el texto del manual
+tokens_referencia = cargar_tokens_referencia(ruta_manual_vectorizado)
+texto_manual = cargar_texto_manual(ruta_manual_vectorizado)
 
-    resultados_comparacion = []
-    for diferencia in diferencias_vectorizadas:
-        vector_diferencia = diferencia["vector"]
-        for _, fila in manual_vectorizado.iterrows():
-            regla_vector = json.loads(fila["Vector"])
-            similitud = sum(a * b for a, b in zip(vector_diferencia, regla_vector))  # Similarity calculation
-            if similitud < 0.8:  # Threshold for compliance
-                resultado = {
-                    "seccion": diferencia.get("seccion"),
-                    "contenido_referencia": diferencia.get("contenido_referencia"),
-                    "contenido_documento": diferencia.get("contenido_documento"),
-                    "tipo": diferencia.get("tipo"),
-                    "recomendacion": diferencia.get("recomendacion"),
-                    "similitud": similitud
-                }
-                resultados_comparacion.append(resultado)
-    return resultados_comparacion if resultados_comparacion else None
-    # Aquí suponemos que `texto_manual` y `tokens_referencia` ya están definidos
+# Finalmente, carga el manual
 load_manual(tokens_referencia, texto_manual, indice_manual)

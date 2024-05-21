@@ -11,6 +11,34 @@ from document_analysis import (
     comparar_con_manual
 )
 
+# Cargar y vectorizar manual
+texto_manual = """
+2.1. Minor variations of Type IA
+2.1.1. Submission of Type IA notifications
+2.1.2. Type IA variations review for mutual recognition procedure
+2.1.3. Type IA variations review for purely national procedure
+2.1.4. Type IA variations review for centralised procedure
+2.2. Minor variations of Type IB
+2.2.1. Submission of Type IB notifications
+2.2.2. Type IB variations review for mutual recognition procedure
+2.2.3. Type IB variations review for purely national procedure
+2.2.4. Type IB variations review for centralised procedure
+2.3. Major variations of Type II
+2.3.1. Submission of Type II applications
+2.3.2. Type II variations assessment for mutual recognition procedure
+2.3.3. Outcome of Type II variations assessment for mutual recognition procedure
+2.3.4. Type II variations assessment for purely national procedure
+2.3.5. Outcome of Type II variations assessment for purely national procedure
+2.3.6. Type II variations assessment for centralised procedure
+2.3.7. Outcome of Type II variations assessment in centralised procedure
+2.4. Extensions
+2.4.1. Submission of Extensions applications
+2.4.2. Extension assessment for national procedure
+2.4.3. Extension assessment for centralised procedure
+"""  # Reemplaza esto con el texto real del manual
+
+tokens_referencia = load_manual(texto_manual, indice_manual)
+
 # Función para procesar documentos
 def procesar_documentos(uploaded_reference_file, uploaded_compare_file, reference_file_type, compare_file_type):
     texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)

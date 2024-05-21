@@ -9,6 +9,7 @@ from document_analysis import (
     almacenar_reglas_vectorizadas,
     cargar_y_vectorizar_manual
 )
+
 # Función para procesar documentos
 def procesar_documentos(uploaded_reference_file, uploaded_compare_file, reference_file_type, compare_file_type):
     texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)
@@ -46,9 +47,11 @@ def extraer_texto(file_type, file):
     return ""
 
 # Función para cargar y vectorizar el manual
-def load_manual(tokens_referencia):
-    almacenar_reglas_vectorizadas(tokens_referencia)
+def load_manual(texto_manual, indice_manual):
+    tokens_referencia = tokenizar_lineamientos([texto_manual])
+    almacenar_reglas_vectorizadas(texto_manual, tokens_referencia, indice_manual)
     st.success("Manual cargado y vectorizado con éxito.")
+    return tokens_referencia
 
 # Función para verificar cumplimiento de archivo
 def verify_file_compliance(tokens_referencia, texto_comparar):
@@ -89,10 +92,32 @@ if st.sidebar.button("Procesar Documentos") and uploaded_reference_file and uplo
     procesar_documentos(uploaded_reference_file, uploaded_compare_file, reference_file_type, compare_file_type)
 
 if st.sidebar.button("Cargar y Vectorizar Manual") and uploaded_reference_file:
-    # Llamar a la función para cargar y vectorizar el manual
     texto_manual = extraer_texto(reference_file_type, uploaded_reference_file)
-    indice_manual = [...]  # Define el índice manual aquí
-    ruta_manual_vectorizado = cargar_y_vectorizar_manual(uploaded_reference_file, reference_file_type, texto_manual, indice_manual)
+    indice_manual = [
+        "2.1. Minor variations of Type IA",
+        "2.1.1. Submission of Type IA notifications",
+        "2.1.2. Type IA variations review for mutual recognition procedure",
+        "2.1.3. Type IA variations review for purely national procedure",
+        "2.1.4. Type IA variations review for centralised procedure",
+        "2.2. Minor variations of Type IB",
+        "2.2.1. Submission of Type IB notifications",
+        "2.2.2. Type IB variations review for mutual recognition procedure",
+        "2.2.3. Type IB variations review for purely national procedure",
+        "2.2.4. Type IB variations review for centralised procedure",
+        "2.3. Major variations of Type II",
+        "2.3.1. Submission of Type II applications",
+        "2.3.2. Type II variations assessment for mutual recognition procedure",
+        "2.3.3. Outcome of Type II variations assessment for mutual recognition procedure",
+        "2.3.4. Type II variations assessment for purely national procedure",
+        "2.3.5. Outcome of Type II variations assessment for purely national procedure",
+        "2.3.6. Type II variations assessment for centralised procedure",
+        "2.3.7. Outcome of Type II variations assessment in centralised procedure",
+        "2.4. Extensions",
+        "2.4.1. Submission of Extensions applications",
+        "2.4.2. Extension assessment for national procedure",
+        "2.4.3. Extension assessment for centralised procedure"
+    ]
+    tokens_referencia = load_manual(texto_manual, indice_manual)
 
 if st.sidebar.button("Verificar Cumplimiento de Archivo") and uploaded_reference_file and uploaded_compare_file:
     texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)
@@ -109,4 +134,16 @@ if st.sidebar.button("Comparar Diferencias con Manual") and uploaded_reference_f
         diferencias_vectorizadas = vectorizar_y_tokenizar_diferencias(
             diferencias, tokens_referencia, uploaded_compare_file.name, uploaded_reference_file.name
         )
-        compare_with_manual(diferencias_vectorizadas, tokens_referencia)
+        st.success("Las diferencias han sido encontradas y vectorizadas.")
+        st.header("Diferencias Encontradas")
+        diferencias_tabla = [
+            [diferencia.get('seccion', 'N/A'), 
+             diferencia.get('contenido_referencia', 'N/A'), 
+             diferencia.get('contenido_documento', 'N/A'), 
+             diferencia.get('tipo', 'N/A'),
+             diferencia.get('recomendacion', 'N/A')]
+            for diferencia in diferencias_vectorizadas
+        ]
+        st.table(diferencias_tabla)
+    else:
+        st.info("No se encontraron diferencias entre los documentos.")

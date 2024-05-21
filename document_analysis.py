@@ -131,6 +131,20 @@ def almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual
 
     return reglas_vectorizadas
 
+def cargar_y_vectorizar_manual(file, file_type, tokens_referencia, indice_manual):
+    texto_manual = extraer_texto(file_type, file)
+    reglas_vectorizadas = almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual)
+    ruta_archivo_csv = "data/output/manual_vectorizado.csv"
+    with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Seccion", "Vector"])
+        for seccion, vector in reglas_vectorizadas.items():
+            writer.writerow([seccion, json.dumps(vector)])
+    return ruta_archivo_csv
+
+def load_manual(tokens_referencia, texto_manual, indice_manual):
+    almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual)
+
 def extraer_titulo_seccion(seccion, indice_manual):
     for item in indice_manual:
         if item in seccion:
@@ -150,7 +164,7 @@ def cargar_y_vectorizar_manual(file, file_type, tokens_referencia, indice_manual
 
 def comparar_con_manual(diferencias_vectorizadas, tokens_referencia):
     try:
-        manual_vectorizado = pd.read_csv("https://raw.githubusercontent.com/FedeGG09/Qualipharma_2/main/data/ouput/reglas_vectorizadas.csv")
+        manual_vectorizado = pd.read_csv("data/output/reglas_vectorizadas.csv")
     except FileNotFoundError:
         logging.error("El archivo 'reglas_vectorizadas.csv' no se encontró.")
         return None
@@ -160,8 +174,8 @@ def comparar_con_manual(diferencias_vectorizadas, tokens_referencia):
         vector_diferencia = diferencia["vector"]
         for _, fila in manual_vectorizado.iterrows():
             regla_vector = json.loads(fila["Vector"])
-            similitud = sum(a * b for a, b in zip(vector_diferencia, regla_vector))  # Cálculo de similitud
-            if similitud < 0.8:  # Umbral de cumplimiento
+            similitud = sum(a * b for a, b in zip(vector_diferencia, regla_vector))  # Similarity calculation
+            if similitud < 0.8:  # Threshold for compliance
                 resultado = {
                     "seccion": diferencia.get("seccion"),
                     "contenido_referencia": diferencia.get("contenido_referencia"),
@@ -172,3 +186,5 @@ def comparar_con_manual(diferencias_vectorizadas, tokens_referencia):
                 }
                 resultados_comparacion.append(resultado)
     return resultados_comparacion if resultados_comparacion else None
+    # Aquí suponemos que `texto_manual` y `tokens_referencia` ya están definidos
+load_manual(tokens_referencia, texto_manual, indice_manual)

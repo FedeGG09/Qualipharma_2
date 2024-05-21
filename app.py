@@ -48,8 +48,8 @@ def extraer_texto(file_type, file):
     return ""
 
 # Función para cargar y vectorizar el manual
-def load_manual(tokens_referencia):
-    almacenar_reglas_vectorizadas(tokens_referencia)
+def load_manual(tokens_referencia, texto_manual):
+    almacenar_reglas_vectorizadas(tokens_referencia, texto_manual)
     st.success("Manual cargado y vectorizado con éxito.")
 
 # Función para verificar cumplimiento de archivo
@@ -81,40 +81,36 @@ def compare_with_manual(diferencias_vectorizadas, tokens_referencia):
         st.success("Las diferencias cumplen con el manual vectorizado.")
 
 # Interfaz Streamlit
+st.set_page_config(page_title="Qualipharma - Analytics Town", page_icon="🧪")
 st.title("Qualipharma - Analytics Town")
 
-# Cargar archivo de referencia
+#st.sidebar.image("path/to/your/logo.png", use_column_width=True)  # Añadir logo
 st.sidebar.header("Cargar Manual de Referencia")
 uploaded_reference_file = st.sidebar.file_uploader("Subir archivo de referencia", type=["pdf", "txt", "docx"])
 if uploaded_reference_file:
     reference_file_type = uploaded_reference_file.name.split(".")[-1]
     st.sidebar.success(f"Archivo de referencia {uploaded_reference_file.name} cargado con éxito.")
 
-# Cargar archivo a comparar
 st.sidebar.header("Cargar Documento a Comparar")
 uploaded_compare_file = st.sidebar.file_uploader("Subir archivo a comparar", type=["pdf", "txt", "docx"])
 if uploaded_compare_file:
     compare_file_type = uploaded_compare_file.name.split(".")[-1]
     st.sidebar.success(f"Archivo a comparar {uploaded_compare_file.name} cargado con éxito.")
 
-# Botón para procesar los documentos
 if st.sidebar.button("Procesar Documentos") and uploaded_reference_file and uploaded_compare_file:
     procesar_documentos(uploaded_reference_file, uploaded_compare_file, reference_file_type, compare_file_type)
 
-# Botón para cargar y vectorizar el manual
 if st.sidebar.button("Cargar y Vectorizar Manual") and uploaded_reference_file:
     texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)
     tokens_referencia = tokenizar_lineamientos([texto_referencia])
-    load_manual(tokens_referencia)
+    load_manual(tokens_referencia, texto_referencia)
 
-# Botón para verificar el cumplimiento del archivo
 if st.sidebar.button("Verificar Cumplimiento de Archivo") and uploaded_reference_file and uploaded_compare_file:
     texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)
     tokens_referencia = tokenizar_lineamientos([texto_referencia])
     texto_comparar = extraer_texto(compare_file_type, uploaded_compare_file)
     verify_file_compliance(tokens_referencia, texto_comparar)
 
-# Botón para comparar diferencias con el manual vectorizado
 if st.sidebar.button("Comparar Diferencias con Manual") and uploaded_reference_file and uploaded_compare_file:
     texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)
     tokens_referencia = tokenizar_lineamientos([texto_referencia])

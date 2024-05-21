@@ -131,15 +131,25 @@ def almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual
 
     return reglas_vectorizadas
 
-def cargar_y_vectorizar_manual(file, file_type, tokens_referencia, indice_manual):
+def cargar_y_vectorizar_manual(file, file_type, indice_manual):
+    # Cargar el texto del manual desde el archivo
     texto_manual = extraer_texto(file_type, file)
+    
+    # Tokenizar el texto del manual para obtener los tokens de referencia
+    tokens_referencia = tokenizar_lineamientos([texto_manual])
+
+    # Almacenar las reglas vectorizadas
     reglas_vectorizadas = almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual)
+    
+    # Guardar el manual vectorizado en un archivo CSV
     ruta_archivo_csv = "data/output/manual_vectorizado.csv"
     with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(["Seccion", "Vector"])
         for seccion, vector in reglas_vectorizadas.items():
             writer.writerow([seccion, json.dumps(vector)])
+    
+    # Retornar la ruta del archivo CSV del manual vectorizado
     return ruta_archivo_csv
 
 def load_manual(tokens_referencia, texto_manual, indice_manual):

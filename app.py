@@ -7,9 +7,66 @@ from document_analysis import (
     vectorizar_y_tokenizar_diferencias,
     tokenizar_lineamientos,
     almacenar_reglas_vectorizadas,
-    cargar_y_vectorizar_manual,
-    comparar_con_manual
+    cargar_y_vectorizar_manual
 )
+# Función para procesar documentos
+def procesar_documentos(uploaded_reference_file, uploaded_compare_file, reference_file_type, compare_file_type):
+    texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)
+    texto_comparar = extraer_texto(compare_file_type, uploaded_compare_file)
+
+    tokens_referencia = tokenizar_lineamientos([texto_referencia])
+    diferencias = encontrar_diferencias(texto_comparar, texto_referencia)
+
+    if diferencias:
+        diferencias_vectorizadas = vectorizar_y_tokenizar_diferencias(
+            diferencias, tokens_referencia, uploaded_compare_file.name, uploaded_reference_file.name
+        )
+        st.success("Las diferencias entre los documentos han sido encontradas y vectorizadas.")
+        st.header("Diferencias Encontradas")
+        diferencias_tabla = [
+            [diferencia.get('seccion', 'N/A'), 
+             diferencia.get('contenido_referencia', 'N/A'), 
+             diferencia.get('contenido_documento', 'N/A'), 
+             diferencia.get('tipo', 'N/A'),
+             diferencia.get('recomendacion', 'N/A')]
+            for diferencia in diferencias_vectorizadas
+        ]
+        st.table(diferencias_tabla)
+    else:
+        st.info("No se encontraron diferencias entre los documentos.")
+
+# Función para extraer texto según el tipo de archivo
+def extraer_texto(file_type, file):
+    if file_type == "pdf":
+        return extraer_texto_pdf(file)
+    elif file_type == "docx":
+        return extraer_texto_docx(file)
+    elif file_type == "txt":
+        return leer_archivo_texto(file)
+    return ""
+
+# Función para cargar y vectorizar el manual
+def load_manual(tokens_referencia):
+    almacenar_reglas_vectorizadas(tokens_referencia)
+    st.success("Manual cargado y vectorizado con éxito.")
+
+# Función para verificar cumplimiento de archivo
+def verify_file_compliance(tokens_referencia, texto_comparar):
+    diferencias = encontrar_diferencias(texto_comparar, " ".join(tokens_referencia))
+    if diferencias:
+        st.warning("El documento no cumple con las normativas establecidas en el manual de referencia.")
+        st.header("Diferencias Encontradas")
+        diferencias_tabla = [
+            [diferencia.get('seccion', 'N/A'), 
+             diferencia.get('contenido_referencia', 'N/A'), 
+             diferencia.get('contenido_documento', 'N/A'), 
+             diferencia.get('tipo', 'N/A'),
+             diferencia.get('recomendacion', 'N/A')]
+            for diferencia in diferencias
+        ]
+        st.table(diferencias_tabla)
+    else:
+        st.success("El documento cumple con las normativas establecidas en el manual de referencia.")
 
 # Interfaz Streamlit
 st.set_page_config(page_title="Qualipharma - Analytics Town", page_icon="🧪")

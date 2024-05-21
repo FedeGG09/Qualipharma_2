@@ -7,7 +7,8 @@ from document_analysis import (
     vectorizar_y_tokenizar_diferencias,
     tokenizar_lineamientos,
     almacenar_reglas_vectorizadas,
-    cargar_y_vectorizar_manual
+    cargar_y_vectorizar_manual,
+    comparar_con_manual
 )
 
 # Función para procesar documentos
@@ -48,7 +49,6 @@ def extraer_texto(file_type, file):
 
 # Función para cargar y vectorizar el manual
 def load_manual(tokens_referencia):
-    # Llamada a almacenar_reglas_vectorizadas con el argumento correcto
     almacenar_reglas_vectorizadas(tokens_referencia)
     st.success("Manual cargado y vectorizado con éxito.")
 
@@ -69,6 +69,16 @@ def verify_file_compliance(tokens_referencia, texto_comparar):
         st.table(diferencias_tabla)
     else:
         st.success("El documento cumple con las normativas establecidas en el manual de referencia.")
+
+# Función para comparar documento con manual vectorizado
+def compare_with_manual(diferencias_vectorizadas, tokens_referencia):
+    resultado_comparacion = comparar_con_manual(diferencias_vectorizadas, tokens_referencia)
+    if resultado_comparacion:
+        st.warning("Las diferencias encontradas no cumplen con el manual vectorizado.")
+        st.header("Diferencias con el Manual")
+        st.table(resultado_comparacion)
+    else:
+        st.success("Las diferencias cumplen con el manual vectorizado.")
 
 # Interfaz Streamlit
 st.title("Qualipharma - Analytics Town")
@@ -103,3 +113,15 @@ if st.sidebar.button("Verificar Cumplimiento de Archivo") and uploaded_reference
     tokens_referencia = tokenizar_lineamientos([texto_referencia])
     texto_comparar = extraer_texto(compare_file_type, uploaded_compare_file)
     verify_file_compliance(tokens_referencia, texto_comparar)
+
+# Botón para comparar diferencias con el manual vectorizado
+if st.sidebar.button("Comparar Diferencias con Manual") and uploaded_reference_file and uploaded_compare_file:
+    texto_referencia = extraer_texto(reference_file_type, uploaded_reference_file)
+    tokens_referencia = tokenizar_lineamientos([texto_referencia])
+    texto_comparar = extraer_texto(compare_file_type, uploaded_compare_file)
+    diferencias = encontrar_diferencias(texto_comparar, texto_referencia)
+    if diferencias:
+        diferencias_vectorizadas = vectorizar_y_tokenizar_diferencias(
+            diferencias, tokens_referencia, uploaded_compare_file.name, uploaded_reference_file.name
+        )
+        compare_with_manual(diferencias_vectorizadas, tokens_referencia)

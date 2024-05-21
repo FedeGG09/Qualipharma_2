@@ -64,6 +64,7 @@ def encontrar_diferencias(documento1, documento2):
     except Exception as e:
         logging.error(f"Error al encontrar diferencias: {e}")
         return None
+
 def vectorizar_y_tokenizar_diferencias(diferencias, tokens_referencia, nombre_documento_comparar, nombre_documento_referencia):
     diferencias_vectorizadas = []
     for diferencia in diferencias:
@@ -118,3 +119,23 @@ def cargar_y_vectorizar_manual(file, file_type, tokens_referencia):
         for regla, vector in reglas_vectorizadas.items():
             writer.writerow([regla, json.dumps(vector)])
     return ruta_archivo_csv
+
+def comparar_con_manual(diferencias_vectorizadas, tokens_referencia):
+    manual_vectorizado = pd.read_csv("data/output/reglas_vectorizadas.csv")
+    resultados_comparacion = []
+    for diferencia in diferencias_vectorizadas:
+        vector_diferencia = diferencia["vector"]
+        for _, fila in manual_vectorizado.iterrows():
+            regla_vector = json.loads(fila["Vector"])
+            similitud = sum(a * b for a, b in zip(vector_diferencia, regla_vector))  # Similarity calculation
+            if similitud < 0.8:  # Threshold for compliance
+                resultado = {
+                    "seccion": diferencia.get("seccion"),
+                    "contenido_referencia": diferencia.get("contenido_referencia"),
+                    "contenido_documento": diferencia.get("contenido_documento"),
+                    "tipo": diferencia.get("tipo"),
+                    "recomendacion": diferencia.get("recomendacion"),
+                    "similitud": similitud
+                }
+                resultados_comparacion.append(resultado)
+    return resultados_comparacion if resultados_comparacion else None

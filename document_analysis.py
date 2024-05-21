@@ -19,6 +19,31 @@ logging.basicConfig(filename='logs/document_analysis.log', level=logging.DEBUG)
 
 lemmatizer = WordNetLemmatizer()
 
+indice_manual = [
+    "2.1. Minor variations of Type IA",
+    "2.1.1. Submission of Type IA notifications",
+    "2.1.2. Type IA variations review for mutual recognition procedure",
+    "2.1.3. Type IA variations review for purely national procedure",
+    "2.1.4. Type IA variations review for centralised procedure",
+    "2.2. Minor variations of Type IB",
+    "2.2.1. Submission of Type IB notifications",
+    "2.2.2. Type IB variations review for mutual recognition procedure",
+    "2.2.3. Type IB variations review for purely national procedure",
+    "2.2.4. Type IB variations review for centralised procedure",
+    "2.3. Major variations of Type II",
+    "2.3.1. Submission of Type II applications",
+    "2.3.2. Type II variations assessment for mutual recognition procedure",
+    "2.3.3. Outcome of Type II variations assessment for mutual recognition procedure",
+    "2.3.4. Type II variations assessment for purely national procedure",
+    "2.3.5. Outcome of Type II variations assessment for purely national procedure",
+    "2.3.6. Type II variations assessment for centralised procedure",
+    "2.3.7. Outcome of Type II variations assessment in centralised procedure",
+    "2.4. Extensions",
+    "2.4.1. Submission of Extensions applications",
+    "2.4.2. Extension assessment for national procedure",
+    "2.4.3. Extension assessment for centralised procedure"
+]
+
 def extraer_texto_docx(docx_file):
     texto = ""
     doc = Document(docx_file)
@@ -86,31 +111,41 @@ def vectorizar_y_tokenizar_diferencias(diferencias, tokens_referencia, nombre_do
     df_diferencias.to_csv(ruta_archivo_csv, index=False, encoding='utf-8')
     return diferencias_vectorizadas
 
-def almacenar_reglas_vectorizadas(tokens_referencia, texto_manual):
+def almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual):
     reglas_vectorizadas = {}
-    reglas = texto_manual.split("\n")
-    for regla in reglas:
-        regla = regla.strip()
-        if regla:
-            vector_tfidf = vectorizar_texto(regla, tokens_referencia)
-            reglas_vectorizadas[regla] = vector_tfidf.tolist()[0]
-    ruta_archivo_csv = "data/output/reglas_vectorizadas.csv"
+    secciones = texto_manual.split("\n\n")  # Supongamos que las secciones están separadas por dos saltos de línea
+
+    for seccion in secciones:
+        seccion = seccion.strip()
+        if seccion:
+            titulo_seccion = extraer_titulo_seccion(seccion, indice_manual)
+            vector_tfidf = vectorizar_texto(seccion, tokens_referencia)
+            reglas_vectorizadas[titulo_seccion] = vector_tfidf.tolist()[0]
+
+    ruta_archivo_csv = "https://raw.githubusercontent.com/FedeGG09/Qualipharma_2/main/data/ouput/reglas_vectorizadas.csv"
     with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(["Regla", "Vector"])
-        for regla, vector in reglas_vectorizadas.items():
-            writer.writerow([regla, json.dumps(vector)])
+        writer.writerow(["Seccion", "Vector"])
+        for seccion, vector in reglas_vectorizadas.items():
+            writer.writerow([seccion, json.dumps(vector)])
+
     return reglas_vectorizadas
 
-def cargar_y_vectorizar_manual(file, file_type, tokens_referencia):
+def extraer_titulo_seccion(seccion, indice_manual):
+    for item in indice_manual:
+        if item in seccion:
+            return item
+    return "Seccion Desconocida"
+
+def cargar_y_vectorizar_manual(file, file_type, tokens_referencia, indice_manual):
     texto_manual = extraer_texto(file_type, file)
-    reglas_vectorizadas = almacenar_reglas_vectorizadas(tokens_referencia, texto_manual)
+    reglas_vectorizadas = almacenar_reglas_vectorizadas(tokens_referencia, texto_manual, indice_manual)
     ruta_archivo_csv = "data/output/manual_vectorizado.csv"
     with open(ruta_archivo_csv, 'w', encoding='utf-8', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(["Regla", "Vector"])
-        for regla, vector in reglas_vectorizadas.items():
-            writer.writerow([regla, json.dumps(vector)])
+        writer.writerow(["Seccion", "Vector"])
+        for seccion, vector in reglas_vectorizadas.items():
+            writer.writerow([seccion, json.dumps(vector)])
     return ruta_archivo_csv
 
 def comparar_con_manual(diferencias_vectorizadas, tokens_referencia):

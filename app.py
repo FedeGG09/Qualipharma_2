@@ -85,7 +85,7 @@ def compare_with_manual(diferencias_vectorizadas, tokens_referencia):
 st.set_page_config(page_title="Qualipharma - Analytics Town", page_icon="🧪")
 st.title("Qualipharma - Analytics Town")
 
-st.sidebar.image("https://github.com/FedeGG09/Qualipharma_2/blob/main/data/input/cropped-qualipharma_isologo_print-e1590563965410-300x300.png", use_column_width=True)  # Añadir logo
+st.sidebar.image("https://raw.githubusercontent.com/FedeGG09/Qualipharma_2/main/data/input/cropped-qualipharma_isologo_print-e1590563965410-300x300.png", use_column_width=True)  # Añadir logo
 st.sidebar.header("Cargar Manual de Referencia")
 uploaded_reference_file = st.sidebar.file_uploader("Subir archivo de referencia", type=["pdf", "txt", "docx"])
 if uploaded_reference_file:
